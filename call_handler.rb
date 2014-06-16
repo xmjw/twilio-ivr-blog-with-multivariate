@@ -1,10 +1,14 @@
 require 'sinatra'
 require 'data_mapper'
 require 'twilio-ruby'
+require 'JSON/pure'
 require './step'
 require './metric'
+require './content'
 
-DataMapper.setup(:default, ENV['DATABASE_URL'])
+DataMapper.setup(:default, ENV['DATABASE_URL'] )
+
+variants = ["A","B"]
 
 # We can use this to setup the database, 
 configure do
@@ -16,42 +20,34 @@ configure do
     Step.create_tree
   end
 end
- 
-#Simple Page to show all the steps.
-get '/' do
-  @steps = Step.all
-  erb :index, :layout => :main_layout
-end
 
-get '/metric' do
-  @metrics = Metric.all
-  #erb :metric, :layout => :main_layout
-end
-
-post '/step' do 
+# Render the default Step
+post '/step' do
+  variant = variants.sample
   step = Step.first(:root => true)
-  Metric.create(cid: params[:CallSid], state: params[:CallStatus], step: step)
-  step.to_twiml
+  Metric.create(cid: params[:CallSid], state: params[:CallStatus], step: step, variant: variant)
+  step.to_twiml variant
 end
 
 #Get and render a step...
-post '/step/:id' do
-  step = Step.get(params[:id])  
+post '/step/:id/:variant' do
+  step = Step.get(params[:id].to_i)  
   #If we are responding to a DTMF sequence, we can simply swap out the current step, and proceed as before.  
   if params[:Digits] != nil
     #We swap the step if the user has entered a keypress.
     step = step.children.find {|option| option[:gather] == params[:Digits] }.action
   end
-
-  Metric.create(cid: params[:CallSid], state: params[:CallStatus], step: step)
+  Metric.first(cid: params[:CallSid]).update(state: params[:CallStatus], step: step, variant: params[:variant])
   content_type 'text/xml'
-  step.to_twiml
+  step.to_twiml params[:variant]
 end
 
+# Updates the metric by call SID after the call completes.
 post '/fin' do
-  Metric.create(cid: params[:CallSid], state: params[:CallStatus])
+  Metric.first(cid: params[:CallSid]).update(state: params[:CallStatus])
 end
 
+# Builds up the tree...
 get '/build' do
   Step.create_tree
   "DONE"
@@ -59,8 +55,8 @@ end
 
 #Deletes everything to give a nice clean database...
 get '/tank' do
+  Content.all.each{|content| content.destroy}
   Step.all.each{|step| step.destroy}
   Metric.all.each{|metric| metric.destroy}
   "DONE"
 end
-

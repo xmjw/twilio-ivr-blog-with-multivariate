@@ -1,9 +1,8 @@
 source 'http://rubygems.org'
-ruby '1.9.3'
 gem 'sinatra'
-gem 'thin'
 gem 'twilio-ruby'
 gem 'pg'
 gem 'data_mapper'
 gem 'dm-postgres-adapter'
-gem 'dm-timestamps'
+gem "json_pure", "~> 1.8.1"
+

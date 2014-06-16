@@ -8,5 +8,6 @@ class Metric
   property :id, Serial
   property :cid, String
   property :state, String
+  property :variant, String
   belongs_to :step, :required => false
 end
