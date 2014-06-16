@@ -1,0 +1,2 @@
+<p>Total Calls: <%= @metrics.uniq{|metric| metric.cid}.count %></p>
+<p>Total Completed Calls: <%= @metrics.select{|metric| metric.step != nil && metric.step.goal}.uniq{|metric| metric.cid}.count %></p>

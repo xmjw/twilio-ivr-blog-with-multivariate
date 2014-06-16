@@ -1,0 +1,20 @@
+<table>
+	<tr>
+		<th>ID</th>
+		<th>Say</th>
+		<th>Parent</th>
+		<th>Sequence</th>
+		<th>Gather</th>
+		<th>Action</th>
+	</tr>
+<% @steps.each do |step| %>
+	<tr>
+	  <td><%= step.id %></td>
+	  <td><%= step.say %></td>
+	  <td><%= step.parent.say if step.parent != nil %></td>
+	  <td><%= step.sequence %></td>
+	  <td><%= step.gather %></td>
+	  <td><%= step.action.say if step.action != nil%></td>
+	<tr>
+<% end %>
+</table>
